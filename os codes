@@ -499,3 +499,105 @@ int main() {
     print(process, n);
 
 }
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include <iostream>
+#include <queue>
+#include <vector>
+
+using namespace std;
+
+class processData {
+    public:
+        int pID;
+        int aT;
+        int bT;
+        int cT;
+        int taT;
+        bool inQ;
+        int wT;
+        int remainingTime;
+
+        processData() {
+            inQ = false;
+        }
+};
+
+void turnAroundTimeAndWaitingTime(processData* process, int n) {
+    for(int i = 0; i < n; i++) {
+        process[i].taT = process[i].cT - process[i].aT;
+        process[i].wT = process[i].taT - process[i].bT;
+    }
+}
+
+void print(processData* process, int n) {
+    for(int i = 0; i < n; i++) {
+        cout << "P" << process[i].pID << " Completion Time: " << process[i].cT << " Turn-around Time: " << process[i].taT << " Waiting Time: " << process[i].wT << endl;
+    }
+}
+
+class cmpBTime {
+    public:
+    int operator() (const processData& a, const processData& b) {
+        return a.bT > b.bT;
+    }
+};
+
+void srtf(processData* process, int n) {
+    int time = 0;
+    int completed = 0;
+
+    priority_queue<processData, vector<processData>, cmpBTime> waiting;
+
+    while(completed != n) {
+        for(int i = 0; i < n; i++) {
+            if(process[i].inQ == false && time >= process[i].aT) {
+                waiting.push(process[i]);
+                process[i].inQ = true;
+            }
+        }
+
+        time++;
+
+        if(waiting.size() != 0) {
+            processData current = waiting.top();
+            waiting.pop();
+
+            current.remainingTime--;
+            if(current.remainingTime == 0) {
+                completed++;
+                for(int i = 0; i < n; i++) {
+                    if(current.pID == process[i].pID) {
+                        process[i].cT = time;
+                    }
+                }
+            }
+
+            else {
+                waiting.push(current);
+            }
+        }
+    }
+
+    cout << "\n\n";
+}
+
+int main() {
+    int n;
+    cout << "Enter number of processes: ";
+    cin >> n;
+
+    processData process[n];
+    for (int i = 0; i < n; i++) {
+        cout << "Enter aT and bT for P" << i+1 << endl;
+        cin >> process[i].aT;
+        cin >> process[i].bT;
+        process[i].remainingTime = process[i].bT;
+        process[i].pID = i + 1;
+    }
+
+    srtf(process, n);
+    turnAroundTimeAndWaitingTime(process, n);
+    print(process, n);
+
+
+}
